@@ -1,0 +1,25 @@
+name: Mirror data.json
+on:
+  schedule:
+    - cron: '20 * * * *'
+  workflow_dispatch:
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch data.json from source dashboard
+        run: curl -fsSL "https://vianapatrick15-max.github.io/dp100k-fp02-dashboard/data.json" -o data.json
+      - name: Commit if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet data.json; then
+            echo "no changes"
+          else
+            git add data.json
+            git commit -m "mirror: $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push
+          fi

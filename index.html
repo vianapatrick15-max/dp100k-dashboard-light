@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DP100K — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --canvas:#f5f3ee; --surface:#ffffff; --surface2:#fbfaf7;
+    --ink:#1a2338; --ink2:#59627a; --ink3:#909ab0;
+    --line:#eceae3; --line2:#e3e1d8;
+    --ing:#4f6bed; --ipm:#e6960f; --out:#8b5cf6; --fat:#0fb47f; --cpa:#0ca7b8; --roas:#f2724b;
+    --shadow:0 1px 2px rgba(26,35,56,.04), 0 6px 16px rgba(26,35,56,.06);
+    --shadow-lg:0 2px 6px rgba(26,35,56,.05), 0 18px 42px rgba(26,35,56,.12);
+    --r:18px;
+    --sans:'Hanken Grotesk',-apple-system,BlinkMacSystemFont,sans-serif;
+    --disp:'Fraunces',Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;
+    background:var(--canvas);
+    background-image:
+      radial-gradient(1200px 460px at 82% -8%, rgba(79,107,237,.10), transparent 60%),
+      radial-gradient(900px 420px at -6% 4%, rgba(15,180,127,.09), transparent 55%),
+      radial-gradient(700px 500px at 50% 120%, rgba(139,92,246,.06), transparent 60%);
+    background-attachment:fixed;}
+  .wrap{max-width:1260px;margin:0 auto;padding:0 22px 72px}
+  a{color:inherit}
+  /* header */
+  header{position:sticky;top:0;z-index:40;background:rgba(245,243,238,.72);
+    backdrop-filter:saturate(1.5) blur(14px);border-bottom:1px solid rgba(227,225,216,.7)}
+  .hd{max-width:1260px;margin:0 auto;padding:16px 22px;display:flex;align-items:center;
+    justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:baseline;gap:12px}
+  .brand .logo{font-family:var(--disp);font-weight:800;font-size:26px;letter-spacing:-.5px;
+    background:linear-gradient(120deg,#1a2338,#4f6bed 120%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .brand .sub{color:var(--ink2);font-size:13.5px;font-weight:500}
+  .upd{color:var(--ink3);font-size:12px;text-align:right;line-height:1.55}
+  .upd b{color:var(--ink2);font-weight:700}
+  /* nav */
+  nav{display:flex;gap:8px;margin:22px 0 12px}
+  .tab{padding:10px 20px;border-radius:999px;border:1px solid var(--line2);background:var(--surface);
+    color:var(--ink2);font-size:14px;font-weight:700;cursor:pointer;transition:.18s;user-select:none;box-shadow:var(--shadow)}
+  .tab:hover{color:var(--ink);transform:translateY(-1px)}
+  .tab.on{color:#fff;border-color:transparent;background:linear-gradient(135deg,#4f6bed,#6d63f0);
+    box-shadow:0 6px 18px rgba(79,107,237,.32)}
+  /* funil bar */
+  .funilbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 8px;
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:13px 16px;box-shadow:var(--shadow)}
+  .funilbar .lbl,.scope .lbl{font-family:var(--disp);font-size:12.5px;color:var(--ink3);letter-spacing:.2px;font-weight:600;font-style:italic}
+  .fchip{padding:8px 16px;border-radius:999px;border:1px solid var(--line2);background:var(--surface2);
+    color:var(--ink2);font-size:13px;font-weight:700;cursor:pointer;transition:.15s;user-select:none}
+  .fchip:hover{color:var(--ink);border-color:var(--ink3)}
+  .fchip.on{color:#fff;border-color:transparent}
+  .fchip.on[data-f="todos"]{background:linear-gradient(135deg,#2b3552,#1a2338)}
+  .fchip.on[data-f="oferta_principal"]{background:linear-gradient(135deg,#4f6bed,#6d8bff);box-shadow:0 5px 15px rgba(79,107,237,.32)}
+  .fchip.on[data-f="quiz"]{background:linear-gradient(135deg,#e6960f,#f6b23e);box-shadow:0 5px 15px rgba(230,150,15,.3)}
+  .fchip.on[data-f="rmkt"]{background:linear-gradient(135deg,#8b5cf6,#a78bfa);box-shadow:0 5px 15px rgba(139,92,246,.3)}
+  .funil-note{font-size:11.5px;color:var(--ink3);margin-left:auto;max-width:520px;text-align:right;line-height:1.45}
+  .chips{display:flex;gap:7px;flex-wrap:wrap}
+  /* scope */
+  .scope{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0 24px;
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:13px 16px;box-shadow:var(--shadow)}
+  .scope input[type=date]{background:var(--surface2);border:1px solid var(--line2);color:var(--ink);
+    border-radius:11px;padding:8px 11px;font-size:13px;font-family:inherit;font-weight:600}
+  .chip{padding:7px 13px;border-radius:999px;border:1px solid var(--line2);background:var(--surface2);
+    color:var(--ink2);font-size:12.5px;font-weight:600;cursor:pointer;transition:.14s;user-select:none}
+  .chip:hover{color:var(--ink);border-color:var(--ink3)}
+  .chip.on{background:linear-gradient(135deg,#eef1fe,#e6ecff);border-color:#b9c6f7;color:#3550d8}
+  .sep{width:1px;align-self:stretch;background:var(--line2);margin:0 3px}
+  .rangetxt{color:var(--ink2);font-size:12.5px;margin-left:auto;font-weight:600}
+  .muted{color:var(--ink3)}
+  /* section title */
+  .h2{font-family:var(--disp);font-size:19px;color:var(--ink);letter-spacing:-.2px;font-weight:600;margin:34px 3px 14px}
+  .h2 span{color:var(--ink3);font-family:var(--sans);font-size:13px;font-weight:500;font-style:normal}
+  /* kpi */
+  .kpis{display:grid;grid-template-columns:repeat(7,1fr);gap:14px}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+    padding:17px 17px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:.2s}
+  .kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+  .kpi::after{content:"";position:absolute;inset:0 0 auto 0;height:3px;opacity:.9}
+  .kpi.k-inv::after{background:linear-gradient(90deg,#59627a,#909ab0)}
+  .kpi.k-ing::after{background:linear-gradient(90deg,var(--ing),#6d8bff)}
+  .kpi.k-cpa::after{background:linear-gradient(90deg,var(--cpa),#3ecfdd)}
+  .kpi.k-ipm::after{background:linear-gradient(90deg,var(--ipm),#f6b23e)}
+  .kpi.k-out::after{background:linear-gradient(90deg,var(--out),#a78bfa)}
+  .kpi.k-fat::after{background:linear-gradient(90deg,var(--fat),#12c9b0)}
+  .kpi.k-roas::after{background:linear-gradient(90deg,var(--roas),#ff9a6b)}
+  .kpi .t{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+  .kpi .v{font-family:var(--disp);font-size:25px;font-weight:600;margin-top:10px;letter-spacing:-.4px;line-height:1;color:var(--ink)}
+  .kpi .s{font-size:12px;color:var(--ink2);margin-top:7px;font-weight:500}
+  /* card */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:var(--shadow)}
+  .card .ct{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:12px;flex-wrap:wrap}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);font-weight:600}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:4px;margin-right:7px;vertical-align:-1px}
+  .chartbox{position:relative;width:100%}
+  svg{display:block;width:100%;height:auto}
+  .tip{position:absolute;pointer-events:none;background:rgba(255,255,255,.96);border:1px solid var(--line2);
+    border-radius:14px;padding:11px 13px;font-size:12px;color:var(--ink);opacity:0;transition:opacity .12s;
+    box-shadow:var(--shadow-lg);z-index:5;min-width:164px;backdrop-filter:blur(6px)}
+  .tip b{color:var(--ink3);font-weight:700}
+  .tip .r{display:flex;justify-content:space-between;gap:16px;margin-top:5px}
+  .tip .r i{width:9px;height:9px;border-radius:3px;display:inline-block;margin-right:7px}
+  .tip .r span{color:var(--ink2);font-weight:500}
+  /* table */
+  .tbl-scroll{overflow-x:auto;border-radius:16px;border:1px solid var(--line);box-shadow:var(--shadow)}
+  table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:1040px;background:var(--surface)}
+  th,td{padding:11px 13px;text-align:right;white-space:nowrap}
+  th{background:var(--surface2);color:var(--ink3);font-weight:700;text-transform:uppercase;
+    font-size:10.5px;letter-spacing:.4px;position:sticky;top:0;border-bottom:1px solid var(--line2)}
+  th:first-child,td:first-child{text-align:left;position:sticky;left:0}
+  td:first-child{background:var(--surface);font-weight:600;color:var(--ink)}
+  th:first-child{background:var(--surface2);z-index:2}
+  td{border-bottom:1px solid var(--line);color:var(--ink2)}
+  td.num{font-variant-numeric:tabular-nums}
+  tbody tr:hover td,tbody tr:hover td:first-child{background:#f6f8ff}
+  tfoot td,tfoot td:first-child{background:linear-gradient(180deg,#f2f5ff,#eef1fe)!important;font-weight:800;
+    border-top:2px solid #c8d3f7;color:var(--ink)}
+  /* ads */
+  .ads-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+  .ad{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+    box-shadow:var(--shadow);display:flex;flex-direction:column;transition:.2s}
+  .ad:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+  .ad .thumb{aspect-ratio:1/1;background:var(--surface2);position:relative;display:flex;
+    align-items:center;justify-content:center;border-bottom:1px solid var(--line)}
+  .ad .thumb img{width:100%;height:100%;object-fit:cover}
+  .ad .thumb .ph{color:var(--ink3);font-size:12px;text-align:center;padding:20px;line-height:1.6}
+  .ad .thumb .ph a{color:var(--ing);text-decoration:none;font-weight:700}
+  .ad .rank{position:absolute;top:10px;left:10px;background:linear-gradient(135deg,#4f6bed,#6d63f0);color:#fff;
+    font-size:12px;font-weight:800;border-radius:10px;padding:4px 10px;box-shadow:0 4px 12px rgba(79,107,237,.4)}
+  .ad .stbadge{position:absolute;top:10px;right:10px;font-size:10px;font-weight:800;border-radius:8px;
+    padding:4px 9px;text-transform:uppercase;letter-spacing:.4px;backdrop-filter:blur(4px)}
+  .stbadge.active{background:rgba(15,180,127,.16);color:#0a815c;border:1px solid rgba(15,180,127,.35)}
+  .stbadge.paused{background:rgba(144,154,176,.16);color:var(--ink2);border:1px solid var(--line2)}
+  .ad .body{padding:14px 15px 16px}
+  .ad .name{font-family:var(--disp);font-size:16px;font-weight:600;line-height:1.3;margin-bottom:3px}
+  .ad .camp{font-size:11px;color:var(--ink3);margin-bottom:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ad .mx{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px 8px}
+  .ad .mx .m .ml{font-size:9.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;font-weight:700}
+  .ad .mx .m .mv{font-size:16px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .ad .links{display:flex;gap:8px;margin-top:13px}
+  .ad .links a{flex:1;text-align:center;font-size:11.5px;font-weight:700;padding:8px;border-radius:10px;
+    border:1px solid var(--line2);color:var(--ink2);text-decoration:none;transition:.14s}
+  .ad .links a:hover{color:var(--ing);border-color:#b9c6f7;background:#f6f8ff}
+  .empty{padding:64px 20px;text-align:center;color:var(--ink3);font-size:14px}
+  .hide{display:none!important}
+  /* entrance */
+  @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .kpis,.card,.h2,.scope,.funilbar,nav{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+  .h2{animation-delay:.04s}.card{animation-delay:.08s}
+  @media(max-width:1080px){.kpis{grid-template-columns:repeat(4,1fr)}}
+  @media(max-width:720px){.kpis{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:520px){.kpis{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hd">
+    <div class="brand"><span class="logo">DP100K</span><span class="sub">Dashboard · Vendas &amp; Tráfego</span></div>
+    <div class="upd" id="upd"></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav>
+    <div class="tab on" data-view="geral">Geral</div>
+    <div class="tab" data-view="turma">Por turma</div>
+    <div class="tab" data-view="ads">Ads</div>
+  </nav>
+
+  <div class="funilbar">
+    <span class="lbl">Funil</span>
+    <div class="chips" id="funil-chips"></div>
+    <span class="funil-note" id="funil-note"></span>
+  </div>
+
+  <!-- GERAL -->
+  <section id="v-geral">
+    <div class="scope">
+      <span class="lbl">Período</span>
+      <input type="date" id="g-de"><span class="muted">até</span><input type="date" id="g-ate">
+      <div class="sep"></div>
+      <div class="chips" id="g-presets"></div>
+      <span class="rangetxt" id="g-rtxt"></span>
+    </div>
+    <div class="kpis" id="g-kpis"></div>
+    <div class="h2">Vendas e faturamento por dia</div>
+    <div class="card">
+      <div class="ct"><div class="legend">
+        <span><i style="background:var(--ing)"></i>Ingressos</span>
+        <span><i style="background:var(--ipm)"></i>IPM</span>
+        <span><i style="background:var(--out)"></i>Outras</span>
+        <span><i style="background:var(--fat)"></i>Faturamento</span>
+      </div></div>
+      <div class="chartbox"><svg id="g-chart" viewBox="0 0 1000 340" preserveAspectRatio="none"></svg><div class="tip" id="g-tip"></div></div>
+    </div>
+    <div class="h2">Métricas de tráfego por dia</div>
+    <div class="card"><div class="tbl-scroll" id="g-tbl"></div></div>
+  </section>
+
+  <!-- POR TURMA -->
+  <section id="v-turma" class="hide">
+    <div class="scope">
+      <span class="lbl">Turma</span>
+      <div class="chips" id="t-chips"></div>
+      <span class="rangetxt" id="t-rtxt"></span>
+    </div>
+    <div class="kpis" id="t-kpis"></div>
+    <div class="h2">Vendas e faturamento por dia</div>
+    <div class="card">
+      <div class="ct"><div class="legend">
+        <span><i style="background:var(--ing)"></i>Ingressos</span>
+        <span><i style="background:var(--ipm)"></i>IPM</span>
+        <span><i style="background:var(--out)"></i>Outras</span>
+        <span><i style="background:var(--fat)"></i>Faturamento</span>
+      </div></div>
+      <div class="chartbox"><svg id="t-chart" viewBox="0 0 1000 340" preserveAspectRatio="none"></svg><div class="tip" id="t-tip"></div></div>
+    </div>
+    <div class="h2">Métricas de tráfego por dia</div>
+    <div class="card"><div class="tbl-scroll" id="t-tbl"></div></div>
+  </section>
+
+  <!-- ADS -->
+  <section id="v-ads" class="hide">
+    <div class="scope">
+      <span class="lbl">Filtro</span>
+      <input type="date" id="a-de"><span class="muted">até</span><input type="date" id="a-ate">
+      <div class="sep"></div>
+      <div class="chips" id="a-chips"></div>
+    </div>
+    <div class="scope" style="margin-top:-16px">
+      <span class="lbl">Ordenar</span>
+      <div class="chips" id="a-sort"></div>
+      <span class="rangetxt" id="a-rtxt"></span>
+    </div>
+    <div id="a-grid" class="ads-grid"></div>
+  </section>
+</div>
+
+<script>
+const SRC='https://vianapatrick15-max.github.io/dp100k-fp02-dashboard/data.json';
+const C={ing:'#4f6bed',ipm:'#e6960f',out:'#8b5cf6',fat:'#0fb47f'};
+let DATA;
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const nf=new Intl.NumberFormat('pt-BR');
+const fmtI=n=>(n==null||isNaN(n))?'—':nf.format(Math.round(n));
+const fmtM=n=>(n==null||isNaN(n))?'—':'R$ '+nf.format(Math.round(n));
+function fmtMk(n){if(n==null||isNaN(n))return'—';const a=Math.abs(n);
+  if(a>=1e6)return'R$ '+(n/1e6).toLocaleString('pt-BR',{maximumFractionDigits:2})+'M';
+  if(a>=1000)return'R$ '+(n/1e3).toLocaleString('pt-BR',{maximumFractionDigits:1})+'k';
+  return'R$ '+nf.format(Math.round(n));}
+const fmtP=(n,d=1)=>(n==null||isNaN(n)||!isFinite(n))?'—':n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})+'%';
+const dmy=s=>s?s.slice(8,10)+'/'+s.slice(5,7):'';
+const dmyy=s=>s?s.slice(8,10)+'/'+s.slice(5,7)+'/'+s.slice(2,4):'';
+function addDays(s,n){const d=new Date(s+'T00:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
+function monthStart(d){return d.slice(0,7)+'-01';}
+function prevMonth(d){const x=new Date(d+'T00:00:00');x.setMonth(x.getMonth()-1);return x.toISOString().slice(0,10);}
+
+let funil='todos';
+function activeDaily(){return funil==='todos'?DATA.daily:(DATA.seg_daily[funil]||[]);}
+function rowsIn(a,b){return activeDaily().filter(x=>x.d>=a&&x.d<=b);}
+function agg(rows){
+  const s=k=>rows.reduce((t,x)=>t+(x[k]||0),0);
+  const inv=s('spend');const fat=s('ing_rev')+s('ipm_rev')+s('out_rev');
+  return{inv,ing:s('ing_n'),ing_rev:s('ing_rev'),ipm:s('ipm_n'),ipm_rev:s('ipm_rev'),
+    out:s('out_n'),out_rev:s('out_rev'),fat,roas:inv?fat/inv:null};
+}
+
+function renderKPIs(el,a){
+  const seg=funil!=='todos';
+  const card=(cls,t,v,s)=>`<div class="kpi ${cls}"><div class="t">${t}</div><div class="v">${v}</div><div class="s">${s||'&nbsp;'}</div></div>`;
+  el.innerHTML=
+    card('k-inv','Investimento',a.inv?fmtM(a.inv):'—','')+
+    card('k-ing','Vendas Ingressos',a.ing?fmtI(a.ing):'—',a.ing?fmtMk(a.ing_rev):(seg?'atribuídas via UTM':''))+
+    card('k-cpa','CPA Ingresso',(a.ing&&a.inv)?fmtM(a.inv/a.ing):'—',(a.ing&&a.inv)?'investimento / ingresso':'')+
+    card('k-ipm','Vendas IPM',seg?'—':(a.ipm?fmtI(a.ipm):'—'),seg?'só no Geral':(a.ipm?fmtMk(a.ipm_rev):''))+
+    card('k-out','Outras Vendas',seg?'—':(a.out?fmtI(a.out):'—'),seg?'só no Geral':(a.out?fmtMk(a.out_rev):''))+
+    card('k-fat',seg?'Faturamento ingressos':'Faturamento',a.fat?fmtM(a.fat):'—',seg?'front-end':'')+
+    card('k-roas',seg?'ROAS front':'ROAS',a.roas?a.roas.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'x':'—',
+        a.inv?fmtMk(a.fat)+' / '+fmtMk(a.inv):'');
+}
+
+function renderChart(svg,tip,rows){
+  const W=1000,H=340,pl=56,pr=68,pt=18,pb=36,plotW=W-pl-pr,plotH=H-pt-pb;
+  const n=rows.length,ns='http://www.w3.org/2000/svg';
+  svg.innerHTML='';tip.style.opacity=0;
+  const mk=(t,at)=>{const e=document.createElementNS(ns,t);for(const k in at)e.setAttribute(k,at[k]);return e;};
+  if(!n){const t=mk('text',{x:W/2,y:H/2,fill:'#909ab0','font-size':14,'text-anchor':'middle'});t.textContent='Sem dados no período';svg.appendChild(t);return;}
+  const ing=rows.map(r=>r.ing_n||0),ipm=rows.map(r=>r.ipm_n||0),out=rows.map(r=>r.out_n||0);
+  const fat=rows.map(r=>(r.ing_rev||0)+(r.ipm_rev||0)+(r.out_rev||0));
+  const cMax=Math.max(5,...ing,...ipm,...out),fMax=Math.max(1000,...fat);
+  const X=i=>n===1?pl+plotW/2:pl+i*plotW/(n-1);
+  const YL=v=>pt+plotH-(v/cMax)*plotH, YR=v=>pt+plotH-(v/fMax)*plotH;
+  // defs: gradientes + glow
+  const defs=mk('defs',{});
+  const vg=(id,color,o)=>{const g=mk('linearGradient',{id,x1:0,y1:0,x2:0,y2:1});
+    g.appendChild(mk('stop',{offset:'0%','stop-color':color,'stop-opacity':o}));
+    g.appendChild(mk('stop',{offset:'100%','stop-color':color,'stop-opacity':0}));defs.appendChild(g);};
+  vg('gFat',C.fat,.30);vg('gIng',C.ing,.22);
+  const lg=mk('linearGradient',{id:'lFat',x1:pl,y1:0,x2:pl+plotW,y2:0,gradientUnits:'userSpaceOnUse'});
+  lg.appendChild(mk('stop',{offset:'0%','stop-color':'#0fb47f'}));
+  lg.appendChild(mk('stop',{offset:'100%','stop-color':'#14c9bf'}));defs.appendChild(lg);
+  const gl=mk('filter',{id:'glow',x:'-20%',y:'-60%',width:'140%',height:'220%'});
+  gl.appendChild(mk('feDropShadow',{dx:0,dy:3,stdDeviation:4,'flood-color':C.fat,'flood-opacity':.28}));defs.appendChild(gl);
+  svg.appendChild(defs);
+  // grid + eixos
+  const G=4;
+  for(let i=0;i<=G;i++){const y=pt+plotH*i/G;
+    svg.appendChild(mk('line',{x1:pl,y1:y,x2:pl+plotW,y2:y,stroke:'#edece6','stroke-width':1}));
+    const tl=mk('text',{x:pl-9,y:y+4,fill:'#909ab0','font-size':11,'text-anchor':'end'});tl.textContent=nf.format(Math.round(cMax*(1-i/G)));svg.appendChild(tl);
+    const tr=mk('text',{x:pl+plotW+9,y:y+4,fill:'#909ab0','font-size':11,'text-anchor':'start'});tr.textContent=fmtMk(fMax*(1-i/G));svg.appendChild(tr);}
+  const step=Math.max(1,Math.ceil(n/8));
+  for(let i=0;i<n;i+=step){const t=mk('text',{x:X(i),y:H-12,fill:'#909ab0','font-size':11,'text-anchor':'middle'});t.textContent=dmy(rows[i].d);svg.appendChild(t);}
+  const linePts=(vals,Y)=>vals.map((v,i)=>(i?'L':'M')+X(i)+' '+Y(v)).join(' ');
+  const area=(vals,Y,fill)=>{const d=linePts(vals,Y)+' L'+X(n-1)+' '+(pt+plotH)+' L'+X(0)+' '+(pt+plotH)+' Z';
+    svg.appendChild(mk('path',{d,fill,stroke:'none'}));};
+  const line=(vals,Y,stroke,w,filter)=>{const p=mk('path',{d:linePts(vals,Y),fill:'none',stroke,'stroke-width':w,'stroke-linejoin':'round','stroke-linecap':'round'});if(filter)p.setAttribute('filter',filter);svg.appendChild(p);};
+  area(fat,YR,'url(#gFat)');area(ing,YL,'url(#gIng)');
+  line(out,YL,C.out,1.7);line(ipm,YL,C.ipm,1.7);line(ing,YL,C.ing,2.6);
+  line(fat,YR,'url(#lFat)',2.8,'url(#glow)');
+  // hover
+  const guide=mk('line',{x1:0,y1:pt,x2:0,y2:pt+plotH,stroke:'#c8d3f7','stroke-width':1.5,opacity:0});svg.appendChild(guide);
+  const dots=[C.ing,C.ipm,C.out,C.fat].map(c=>{const d=mk('circle',{r:4.5,fill:'#fff',stroke:c,'stroke-width':2.5,opacity:0});svg.appendChild(d);return d;});
+  const over=mk('rect',{x:pl,y:pt,width:plotW,height:plotH,fill:'transparent'});svg.appendChild(over);
+  over.addEventListener('mousemove',ev=>{
+    const rc=svg.getBoundingClientRect();const px=(ev.clientX-rc.left)/rc.width*W;
+    let i=Math.round((px-pl)/(plotW/(n>1?n-1:1)));i=Math.max(0,Math.min(n-1,i));
+    const r=rows[i],xx=X(i);
+    guide.setAttribute('x1',xx);guide.setAttribute('x2',xx);guide.setAttribute('opacity',.6);
+    const rfat=(r.ing_rev||0)+(r.ipm_rev||0)+(r.out_rev||0);
+    [YL(r.ing_n||0),YL(r.ipm_n||0),YL(r.out_n||0),YR(rfat)].forEach((y,k)=>{
+      dots[k].setAttribute('cx',xx);dots[k].setAttribute('cy',y);dots[k].setAttribute('opacity',1);});
+    tip.style.opacity=1;
+    tip.innerHTML=`<b>${dmyy(r.d)}</b>
+      <div class="r"><span><i style="background:${C.ing}"></i>Ingressos</span><b style="color:#1a2338">${r.ing_n||0}</b></div>
+      <div class="r"><span><i style="background:${C.ipm}"></i>IPM</span><b style="color:#1a2338">${r.ipm_n||0}</b></div>
+      <div class="r"><span><i style="background:${C.out}"></i>Outras</span><b style="color:#1a2338">${r.out_n||0}</b></div>
+      <div class="r"><span><i style="background:${C.fat}"></i>Faturamento</span><b style="color:#1a2338">${fmtMk(rfat)}</b></div>`;
+    const box=svg.parentElement.getBoundingClientRect();
+    let lx=(ev.clientX-box.left)+16;if(lx>box.width-182)lx=(ev.clientX-box.left)-196;
+    tip.style.left=lx+'px';tip.style.top=Math.max(4,(ev.clientY-box.top)-10)+'px';
+  });
+  over.addEventListener('mouseleave',()=>{tip.style.opacity=0;guide.setAttribute('opacity',0);dots.forEach(d=>d.setAttribute('opacity',0));});
+}
+
+function renderTable(el,rows){
+  if(!rows.length){el.innerHTML='<div class="empty">Sem dados no período.</div>';return;}
+  const head=['Data','Investimento','Vendas ing.','CPA ing.','Impressões','CPM','Alcance','Cliques link','CTR link','Visitas pág.','Checkout','Conv. Página','Conv. Checkout'];
+  let h='<table><thead><tr>'+head.map(x=>`<th>${x}</th>`).join('')+'</tr></thead><tbody>';
+  const T={spend:0,ing:0,impr:0,reach:0,lclk:0,lpv:0,ic:0};
+  rows.forEach(r=>{
+    T.spend+=r.spend;T.ing+=r.ing_n;T.impr+=r.impr;T.reach+=r.reach;T.lclk+=r.lclk;T.lpv+=r.lpv;T.ic+=r.ic;
+    const cpaI=r.ing_n?r.spend/r.ing_n:null,cpm=r.impr?r.spend/r.impr*1000:null,ctr=r.impr?r.lclk/r.impr*100:null,
+      cvPag=r.lpv?r.ic/r.lpv*100:null,cvChk=r.ic?r.ing_n/r.ic*100:null;
+    h+=`<tr><td>${dmyy(r.d)}</td>
+      <td class="num">${r.spend?fmtM(r.spend):'—'}</td>
+      <td class="num">${r.ing_n?fmtI(r.ing_n):'—'}</td>
+      <td class="num">${cpaI?fmtM(cpaI):'—'}</td>
+      <td class="num">${r.impr?fmtI(r.impr):'—'}</td>
+      <td class="num">${cpm?fmtM(cpm):'—'}</td>
+      <td class="num">${r.reach?fmtI(r.reach):'—'}</td>
+      <td class="num">${r.lclk?fmtI(r.lclk):'—'}</td>
+      <td class="num">${fmtP(ctr,2)}</td>
+      <td class="num">${r.lpv?fmtI(r.lpv):'—'}</td>
+      <td class="num">${r.ic?fmtI(r.ic):'—'}</td>
+      <td class="num">${fmtP(cvPag)}</td>
+      <td class="num">${fmtP(cvChk)}</td></tr>`;
+  });
+  const cpaIT=T.ing?T.spend/T.ing:null,cpmT=T.impr?T.spend/T.impr*1000:null,ctrT=T.impr?T.lclk/T.impr*100:null,
+    cvPagT=T.lpv?T.ic/T.lpv*100:null,cvChkT=T.ic?T.ing/T.ic*100:null;
+  h+=`</tbody><tfoot><tr><td>Total do período</td>
+    <td class="num">${fmtM(T.spend)}</td><td class="num">${fmtI(T.ing)}</td>
+    <td class="num">${cpaIT?fmtM(cpaIT):'—'}</td>
+    <td class="num">${fmtI(T.impr)}</td><td class="num">${cpmT?fmtM(cpmT):'—'}</td>
+    <td class="num">${fmtI(T.reach)}</td><td class="num">${fmtI(T.lclk)}</td>
+    <td class="num">${fmtP(ctrT,2)}</td><td class="num">${fmtI(T.lpv)}</td>
+    <td class="num">${fmtI(T.ic)}</td><td class="num">${fmtP(cvPagT)}</td><td class="num">${fmtP(cvChkT)}</td>
+    </tr></tfoot></table>`;
+  el.innerHTML=h;
+}
+
+function computeAds(a,b){
+  const m={};
+  DATA.ads_daily.forEach(r=>{
+    if(r.d<a||r.d>b)return;
+    if(r.seg==='nutricao')return;
+    if(funil!=='todos'&&r.seg!==funil)return;
+    const o=m[r.ad]||(m[r.ad]={ad:r.ad,spend:0,purch:0,impr:0,ic:0,lpv:0,lclk:0});
+    o.spend+=r.spend;o.purch+=r.purch;o.impr+=r.impr;o.ic+=r.ic;o.lpv+=r.lpv;o.lclk+=r.lclk;
+  });
+  return Object.values(m).filter(o=>o.spend>0||o.purch>0);
+}
+function adCode(name){const m=name.match(/\[(AD-[^\]]+)\]/i);return m?m[1].toUpperCase():name.slice(0,16);}
+function renderAdsGrid(el,list,sortKey){
+  if(!list.length){el.innerHTML='<div class="empty">Nenhum anúncio com investimento no período.</div>';return;}
+  const sorters={vendas:x=>-x.purch,invest:x=>-x.spend,cpa:x=>x.purch?x.spend/x.purch:1e15};
+  list.sort((p,q)=>(sorters[sortKey](p)-sorters[sortKey](q))||(q.spend-p.spend));
+  el.innerHTML=list.map((o,i)=>{
+    const meta=DATA.ads_meta[o.ad]||{};
+    const cpa=o.purch?o.spend/o.purch:null, ctr=o.impr?o.lclk/o.impr*100:null;
+    const active=(meta.status||'').toUpperCase()==='ACTIVE';
+    let thumb;
+    if(meta.thumb)thumb=`<img src="${meta.thumb}" loading="lazy" alt="">`;
+    else{const lk=meta.permalink||meta.preview;
+      thumb=`<div class="ph">${lk?`<a href="${lk}" target="_blank" rel="noopener">Ver criativo &nearr;</a>`:'sem preview'}</div>`;}
+    return `<div class="ad">
+      <div class="thumb"><span class="rank">#${i+1}</span>
+        <span class="stbadge ${active?'active':'paused'}">${active?'Ativo':'Pausado'}</span>${thumb}</div>
+      <div class="body">
+        <div class="name">${adCode(o.ad)}</div>
+        <div class="camp" title="${o.ad}">${o.ad}</div>
+        <div class="mx">
+          <div class="m"><div class="ml">Vendas</div><div class="mv" style="color:var(--ing)">${o.purch}</div></div>
+          <div class="m"><div class="ml">Investido</div><div class="mv">${fmtMk(o.spend)}</div></div>
+          <div class="m"><div class="ml">CPA</div><div class="mv">${cpa?fmtM(cpa):'—'}</div></div>
+          <div class="m"><div class="ml">Impressões</div><div class="mv">${fmtI(o.impr)}</div></div>
+          <div class="m"><div class="ml">CTR link</div><div class="mv">${fmtP(ctr,2)}</div></div>
+          <div class="m"><div class="ml">Checkout</div><div class="mv">${fmtI(o.ic)}</div></div>
+        </div>
+        ${(meta.permalink||meta.preview)?`<div class="links">
+          ${meta.permalink?`<a href="${meta.permalink}" target="_blank" rel="noopener">Instagram</a>`:''}
+          ${meta.preview?`<a href="${meta.preview}" target="_blank" rel="noopener">Preview</a>`:''}
+        </div>`:''}
+      </div></div>`;
+  }).join('');
+}
+
+const st={geral:{a:null,b:null},turma:{i:0},ads:{a:null,b:null,sort:'vendas'}};
+function drawGeral(){
+  const{a,b}=st.geral;const rows=rowsIn(a,b);
+  renderKPIs($('#g-kpis'),agg(rows));renderChart($('#g-chart'),$('#g-tip'),rows);renderTable($('#g-tbl'),rows);
+  $('#g-de').value=a;$('#g-ate').value=b;
+  $('#g-rtxt').textContent=rows.length?`${rows.length} dias · ${dmyy(a)} – ${dmyy(b)}`:'sem dados';
+}
+function drawTurma(){
+  const t=DATA.turmas[st.turma.i];if(!t)return;const rows=rowsIn(t.inicio,t.fim);
+  renderKPIs($('#t-kpis'),agg(rows));renderChart($('#t-chart'),$('#t-tip'),rows);renderTable($('#t-tbl'),rows);
+  $$('#t-chips .chip').forEach((c,i)=>c.classList.toggle('on',i===st.turma.i));
+  $('#t-rtxt').textContent=`${t.label} · ${dmyy(t.inicio)} – ${dmyy(t.fim)}`;
+}
+function drawAds(){
+  const{a,b,sort}=st.ads;$('#a-de').value=a;$('#a-ate').value=b;
+  const list=computeAds(a,b);renderAdsGrid($('#a-grid'),list,sort);
+  $$('#a-sort .chip').forEach(c=>c.classList.toggle('on',c.dataset.sort===sort));
+  $('#a-rtxt').textContent=`${list.length} anúncios · ${dmyy(a)} – ${dmyy(b)}`;
+}
+function showView(v){
+  $$('.tab').forEach(t=>t.classList.toggle('on',t.dataset.view===v));
+  $('#v-geral').classList.toggle('hide',v!=='geral');$('#v-turma').classList.toggle('hide',v!=='turma');$('#v-ads').classList.toggle('hide',v!=='ads');
+  if(v==='geral')drawGeral();if(v==='turma')drawTurma();if(v==='ads')drawAds();
+}
+function redrawActive(){
+  if(!$('#v-geral').classList.contains('hide'))drawGeral();
+  if(!$('#v-turma').classList.contains('hide'))drawTurma();
+  if(!$('#v-ads').classList.contains('hide'))drawAds();
+}
+
+function initControls(){
+  const min=DATA.meta.date_min,max=DATA.meta.date_max;
+  [$('#g-de'),$('#g-ate'),$('#a-de'),$('#a-ate')].forEach(el=>{el.min=min;el.max=max;});
+  const pmStart=monthStart(prevMonth(max)),pmEnd=addDays(monthStart(max),-1);
+  const presets=[['Este mês',()=>[monthStart(max),max]],['Mês passado',()=>[pmStart,pmEnd]],
+    ['Últimos 30d',()=>[addDays(max,-29),max]],['Últimos 7d',()=>[addDays(max,-6),max]],['Tudo',()=>[min,max]]];
+  const gp=$('#g-presets');
+  const markPreset=(box,c)=>[...box.children].forEach(x=>x.classList.toggle('on',x===c));
+  presets.forEach(([lb,fn])=>{const c=document.createElement('div');c.className='chip';c.textContent=lb;
+    c.onclick=()=>{const[a,b]=fn();st.geral.a=a;st.geral.b=b;markPreset(gp,c);drawGeral();};gp.appendChild(c);});
+  $('#g-de').onchange=e=>{st.geral.a=e.target.value;markPreset(gp,null);drawGeral();};
+  $('#g-ate').onchange=e=>{st.geral.b=e.target.value;markPreset(gp,null);drawGeral();};
+  gp.children[0].classList.add('on');
+  const tc=$('#t-chips');
+  DATA.turmas.forEach((t,i)=>{const c=document.createElement('div');c.className='chip';c.textContent=t.label;
+    c.onclick=()=>{st.turma.i=i;drawTurma();};tc.appendChild(c);});
+  st.turma.i=Math.max(0,DATA.turmas.length-1);
+  const ac=$('#a-chips');
+  const adsPresets=[['Este mês',[monthStart(max),max]]];
+  DATA.turmas.forEach(t=>adsPresets.push([t.label,[t.inicio,t.fim]]));
+  adsPresets.forEach(([lb,[a,b]])=>{const c=document.createElement('div');c.className='chip';c.textContent=lb;
+    c.onclick=()=>{st.ads.a=a;st.ads.b=b;drawAds();};ac.appendChild(c);});
+  $('#a-de').onchange=e=>{st.ads.a=e.target.value;drawAds();};
+  $('#a-ate').onchange=e=>{st.ads.b=e.target.value;drawAds();};
+  const as=$('#a-sort');
+  [['vendas','Mais vendas'],['invest','Maior investimento'],['cpa','Melhor CPA']].forEach(([k,lb])=>{
+    const c=document.createElement('div');c.className='chip';c.dataset.sort=k;c.textContent=lb;
+    c.onclick=()=>{st.ads.sort=k;drawAds();};as.appendChild(c);});
+  $$('.tab').forEach(t=>t.onclick=()=>showView(t.dataset.view));
+  const fc=$('#funil-chips');
+  const funs=[{key:'todos',label:'Todos'},...(DATA.funnels||[]).filter(f=>f.key!=='nutricao')];
+  const NOTE='Tráfego + ingressos atribuídos via UTM a este funil. IPM/back-end e vendas orgânicas aparecem só no Geral (Todos).';
+  funs.forEach(f=>{const c=document.createElement('div');c.className='fchip';c.dataset.f=f.key;c.textContent=f.label;
+    if(f.key==='todos')c.classList.add('on');
+    c.onclick=()=>{funil=f.key;$$('#funil-chips .fchip').forEach(x=>x.classList.toggle('on',x.dataset.f===f.key));
+      $('#funil-note').textContent=funil==='todos'?'':NOTE;redrawActive();};
+    fc.appendChild(c);});
+  let rz;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(redrawActive,200);});
+}
+
+function boot(d){
+  DATA=d;const m=d.meta;
+  st.geral.a=m.default_start;st.geral.b=m.default_end;st.ads.a=m.default_start;st.ads.b=m.default_end;
+  $('#upd').innerHTML=`<b>Atualizado</b> ${d.updated_at||'—'}<br>Dados: ${dmyy(m.date_min)} – ${dmyy(m.date_max)}`;
+  initControls();showView('geral');
+}
+fetch(SRC+'?v='+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json();})
+  .catch(()=>fetch('data.json?v='+Date.now()).then(r=>r.json()))
+  .then(boot)
+  .catch(e=>{document.querySelector('.wrap').innerHTML='<div class="empty">Erro ao carregar os dados: '+e+'</div>';});
+</script>
+</body>
+</html>
