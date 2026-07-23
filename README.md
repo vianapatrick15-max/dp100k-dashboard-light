@@ -13,5 +13,11 @@ pelo workflow `mirror.yml`). Toda a lógica de negócio (funil, CPA, atribuiçã
 turmas) vive no repo principal `dp100k-fp02-dashboard`.
 
 ## Design
-Tema claro editorial: Fraunces (display) + Hanken Grotesk (UI), canvas com gradientes
-suaves, cards brancos com sombra, e gráfico de área com preenchimento em gradiente + glow.
+Tema claro profissional (padrão BI/apresentação de diretoria): tipografia **IBM Plex Sans**
+com numerais tabulares, canvas com gradientes suaves, cards brancos com sombra, e gráfico
+de área com preenchimento em gradiente + glow.
+
+Preview dos ads = **embed do link do Instagram** (`instagram.com/p/<code>/embed` em iframe
+lazy). Funciona porque o browser envia `Sec-Fetch-Dest: iframe` — sem esse header o IG
+responde `X-Frame-Options: DENY`. Usar `/embed` (não `/embed/captioned`, que bloqueia).
+Grade limitada ao top 60 por ordenação (embeds são pesados); fallback: thumb Meta ou link.
