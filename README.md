@@ -21,3 +21,17 @@ Preview dos ads = **embed do link do Instagram** (`instagram.com/p/<code>/embed`
 lazy). Funciona porque o browser envia `Sec-Fetch-Dest: iframe` — sem esse header o IG
 responde `X-Frame-Options: DENY`. Usar `/embed` (não `/embed/captioned`, que bloqueia).
 Grade limitada ao top 60 por ordenação (embeds são pesados); fallback: thumb Meta ou link.
+
+## Retenção de vídeo (view Ads)
+Ad de vídeo ganha a faixa **Retenção** abaixo das métricas: hook rate, hold rate e a curva
+25/50/75/100. Ordenação também por **Melhor hook** e **Melhor hold**.
+
+| Métrica | Fórmula | O que responde |
+|---|---|---|
+| **Hook rate** | visualizações de 3s ÷ impressões | quantos pararam o scroll |
+| **Hold rate** | 100% assistido ÷ visualizações de 3s | dos que pararam, quantos foram até o fim |
+| **Curva** | p25/p50/p75/p100 ÷ visualizações de 3s | **onde** o vídeo perde a audiência |
+
+Estático não tem faixa; piso de 30 visualizações de 3s pra cortar ruído de placement.
+Os campos (`v3`, `p25`…`p100`) chegam prontos no `data.json` do repo principal — quem
+os puxa da Meta é o `pull_video.py` de lá. Aqui é só apresentação.
